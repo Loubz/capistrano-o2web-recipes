@@ -120,7 +120,7 @@ end
 namespace :nginx do
   def upload(server, source, destination)
     File.open(source, 'w') do |f|
-      f.puts ERB.new(File.read("#{source}.erb")).result
+      f.puts ERB.new(File.read("#{source}.erb"), nil, '-').result
     end
     system "rsync --rsync-path='sudo rsync' -avzO -e 'ssh -p #{fetch(:port)}' '#{source}' #{fetch(:admin_name)}@#{server.hostname}:#{destination}"
     FileUtils.rm_f source
