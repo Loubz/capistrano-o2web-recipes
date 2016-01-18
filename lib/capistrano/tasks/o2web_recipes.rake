@@ -1,3 +1,5 @@
+require 'erb'
+
 namespace :load do
   task :defaults do
     set :files_public_dirs, ['system']
