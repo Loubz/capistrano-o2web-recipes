@@ -20,7 +20,7 @@ And then:
 
 ### Setup and usage
 
-Add this line to `Capfile`, after `require 'capistrano/rails/assets'`
+Add this line to `Capfile`, after `require 'capistrano/rails/migrations'`
 
     require 'capistrano/o2web_recipes'
     
@@ -50,15 +50,17 @@ Configurations can be customized in your deploy file with:
 set :server, 'example.com'
 set :admin_name, 'admin'
 set :deployer_name, 'deployer'
+# default to %W[system]
 set :files_public_dirs, fetch(:files_public_dirs, []).push(*%W[
-  system
+  spree
 ])
+# default to []
 set :files_private_dirs, fetch(:files_private_dirs, []).push(*%W[
 ])
 set :nginx_workers, 1
+# default to %W[assets system]
 set :nginx_assets_dirs, fetch(:nginx_assets_dirs, []).push(*%W[
-  assets
-  system
+  spree
 ])
 set :nginx_max_body_size, '10m'
 ```
@@ -66,6 +68,5 @@ set :nginx_max_body_size, '10m'
 ### TODO
 
 1. Use stages (staging/production) to scope Nginx config file to allow multiple stages on the same server.
-1. Lose the dependency to capistrano3-nginx gem.
 1. Log rotate
 1. Monit
