@@ -36,6 +36,11 @@ server {
   # listen 443 ssl;
   # ssl_certificate /etc/ssl/certs/<%= fetch(:server) %>.chained.crt;
   # ssl_certificate_key /etc/ssl/private/<%= fetch(:server) %>.key;
+  
+  # redirect https://www.server_name.com to https://server_name.com
+  #if ($host = www.$server_name) {
+  #  rewrite ^(.*) https://$server_name$request_uri? permanent;
+  #}
 <% end -%>
 
   client_max_body_size <%= fetch(:nginx_max_body_size) %>;
