@@ -48,7 +48,6 @@ Configurations can be customized in your deploy file with:
 
 ```ruby
 set :server, 'example.com'
-set :admin_name, 'admin'
 set :deployer_name, 'deployer'
 # default to %W[system]
 set :files_public_dirs, fetch(:files_public_dirs, []).push(*%W[
