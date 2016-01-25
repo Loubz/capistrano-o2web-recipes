@@ -1,5 +1,16 @@
 require 'erb'
 
+namespace :load do
+  task :defaults do
+    set :files_public_dirs, ['system']
+    set :files_private_dirs, []
+
+    set :nginx_workers, 1
+    set :nginx_assets_dirs, %w[assets system]
+    set :nginx_max_body_size, '10m'
+  end
+end
+
 Rake::Task["deploy:compile_assets"].clear
 
 namespace :deploy do
@@ -33,16 +44,13 @@ namespace :deploy do
       run_locally { execute "rm -rf #{local_dir}" }
     end
   end
-end
 
-namespace :load do
-  task :defaults do
-    set :files_public_dirs, ['system']
-    set :files_private_dirs, []
-
-    set :nginx_workers, 1
-    set :nginx_assets_dirs, %w[assets system]
-    set :nginx_max_body_size, '10m'
+  after :deploy, :touch_cron_log do
+    on roles :app do
+      within shared_path do
+        execute :touch, 'log/cron.log'
+      end
+    end
   end
 end
 
