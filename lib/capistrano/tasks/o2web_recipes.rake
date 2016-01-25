@@ -1,5 +1,40 @@
 require 'erb'
 
+Rake::Task["deploy:compile_assets"].clear
+
+namespace :deploy do
+  desc 'Compile assets'
+  task :compile_assets => [:set_rails_env] do
+    # invoke 'deploy:assets:precompile'
+    invoke 'deploy:assets:precompile_local'
+    invoke 'deploy:assets:backup_manifest'
+  end
+
+  namespace :assets do
+    desc "Precompile assets locally and then rsync to web servers"
+    task :precompile_local do
+      # compile assets locally
+      run_locally do
+        DB = YAML.load_file('config/database.yml')['development']
+        db_connection = "#{DB['adapter']}://#{DB['username']}:#{DB['password']}@#{DB['host']}/#{DB['database']}"
+        execute "RAILS_ENV=#{fetch(:stage)} DATABASE_URL=#{db_connection} bundle exec rake assets:precompile"
+      end
+
+      # rsync to each server
+      local_dir = "./public/assets/"
+      on roles( fetch(:assets_roles, [:web]) ) do
+        # this needs to be done outside run_locally in order for host to exist
+        remote_dir = "#{host.user}@#{host.hostname}:#{release_path}/public/assets/"
+
+        run_locally { execute "rsync -av --delete #{local_dir} #{remote_dir}" }
+      end
+
+      # clean up
+      run_locally { execute "rm -rf #{local_dir}" }
+    end
+  end
+end
+
 namespace :load do
   task :defaults do
     set :files_public_dirs, ['system']
