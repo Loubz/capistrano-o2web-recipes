@@ -42,7 +42,7 @@ cap [stage] db:local_to_server            # Sync server DB with local DB
 cap [stage] nginx:local_to_server         # Export nginx configuration files
 ```
 
-Also, tasks from 'capistrano3-nginx' are available.
+Also, `deploy:assets:precompile` task is done locally and a `cron.log` file is created/touched in `shared/log` after deploy.
 
 Configurations can be customized in your deploy file with:
 
