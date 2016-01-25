@@ -6,7 +6,7 @@ namespace :load do
     set :files_private_dirs, []
 
     set :nginx_workers, 1
-    set :nginx_assets_dirs, %w[assets system]
+    set :nginx_assets_dirs, %w[assets]
     set :nginx_max_body_size, '10m'
   end
 end
