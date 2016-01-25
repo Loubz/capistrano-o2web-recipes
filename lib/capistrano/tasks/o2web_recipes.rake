@@ -1,15 +1,6 @@
 require 'erb'
 
-Rake::Task["deploy:compile_assets"].clear
-
 namespace :deploy do
-  desc 'Compile assets'
-  task :compile_assets => [:set_rails_env] do
-    # invoke 'deploy:assets:precompile'
-    invoke 'deploy:assets:precompile_local'
-    invoke 'deploy:assets:backup_manifest'
-  end
-
   namespace :assets do
     desc "Precompile assets locally and then rsync to web servers"
     task :precompile_local do
