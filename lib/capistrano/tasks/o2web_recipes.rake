@@ -175,21 +175,28 @@ namespace :monit do
   desc 'Start monit'
   task :start do
     on roles :app do |host|
-      execute :sudo, 'monit start all'
+      execute :sudo, 'service monit start all'
+    end
+  end
+
+  desc 'Restart monit'
+  task :restart do
+    on roles :app do |host|
+      execute :sudo, 'service monit restart all'
     end
   end
 
   desc 'Stop monit'
   task :stop do
     on roles :app do |host|
-      execute :sudo, 'monit stop all'
+      execute :sudo, 'service monit stop all'
     end
   end
 
   desc 'Reload monit'
   task :reload do
     on roles :app do |host|
-      execute :sudo, 'monit reload'
+      execute :sudo, 'service monit reload'
     end
   end
 end
