@@ -1,4 +1,7 @@
 require 'erb'
+require 'capistrano/helpers/rsync'
+
+include Capistrano::Helpers::Rsync
 
 namespace :load do
   task :defaults do
@@ -80,17 +83,6 @@ namespace :tmp_cache do
 end
 
 namespace :files do
-  def send_files(type, server, root = 'public')
-    raise "No server given" if !server
-    system "rsync --progress -rue 'ssh -p #{fetch(:port)}' #{root}/#{type} #{server.user}@#{server.hostname}:#{shared_path}/#{root}/"
-  end
-
-  def get_files(type, server, root = 'public')
-    raise "No server given" if !server
-    puts "Importing #{type}. Please wait..."
-    system "rsync --progress -rue 'ssh -p #{fetch(:port)}' #{server.user}@#{server.hostname}:#{shared_path}/#{root}/#{type} ./#{root}/"
-  end
-
   desc 'Import public files'
   task :server_to_local do
     on roles :app do |host|
@@ -161,19 +153,43 @@ namespace :db do
 end
 
 namespace :nginx do
-  def upload(server, source, destination)
-    File.open(source, 'w') do |f|
-      f.puts ERB.new(File.read("#{source}.erb"), nil, '-').result
-    end
-    system "rsync --rsync-path='sudo rsync' -avzO -e 'ssh -p #{fetch(:port)}' '#{source}' #{fetch(:deployer_name)}@#{server.hostname}:#{destination}"
-    FileUtils.rm_f source
-  end
-
   desc 'Export nginx configuration files'
   task :local_to_server do
     on roles :app do |host|
       upload host, 'config/nginx.conf', '/etc/nginx/nginx.conf'
       upload host, 'config/nginx.app.conf', '/etc/nginx/sites-available/default'
+    end
+  end
+end
+
+namespace :monit do
+  desc 'Export monit configuration file'
+  task :local_to_server do
+    on roles :app do |host|
+      upload host, 'config/monitrc', '/etc/monit/monitrc'
+      execute :sudo, 'chown root:root /etc/monit/monitrc'
+      execute :sudo, 'chmod 0700 /etc/monit/monitrc'
+    end
+  end
+
+  desc 'Start monit'
+  task :start do
+    on roles :app do |host|
+      execute :sudo, 'monit start all'
+    end
+  end
+
+  desc 'Stop monit'
+  task :stop do
+    on roles :app do |host|
+      execute :sudo, 'monit stop all'
+    end
+  end
+
+  desc 'Reload monit'
+  task :reload do
+    on roles :app do |host|
+      execute :sudo, 'monit reload'
     end
   end
 end
