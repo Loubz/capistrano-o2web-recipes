@@ -5,9 +5,10 @@ namespace :load do
     set :files_public_dirs, ['system']
     set :files_private_dirs, []
 
-    set :nginx_workers, 1
-    set :nginx_assets_dirs, ['assets']
     set :nginx_max_body_size, '10m'
+    set :nginx_public_dirs, ['system', 'images']
+    set :nginx_public_files, ['404.html', '422.html', '500.html', 'favicon.ico']
+    set :nginx_redirects, {}
   end
 end
 

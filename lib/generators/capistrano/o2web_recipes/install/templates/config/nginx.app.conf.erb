@@ -14,19 +14,24 @@
 # Default server configuration
 #
 server {
-  listen 80 default_server;
-  listen [::]:80 default_server ipv6only=on;
+  listen 80 default_server deferred;
+  listen [::]:80 default_server deferred ipv6only=on;
 
   server_name <%= fetch(:server) %>;
+
   passenger_enabled on;
   rails_env <%= fetch(:stage) %>;
   root <%= fetch(:deploy_to) %>/current/public;
 
+  error_page 404 /404.html;
+  error_page 422 /422.html;
+  error_page 500 502 503 504 /500.html;
+
 <% if fetch(:stage) == :production %>
   # SSL configuration
   #
-  # listen 443 ssl default_server;
-  # listen [::]:443 ssl default_server;
+  # listen 443 ssl default_server deferred;
+  # listen [::]:443 ssl default_server deferred ipv6only=on;
   #
   # ssl_certificate /etc/ssl/certs/$server_name.chained.crt;
   # ssl_certificate_key /etc/ssl/private/$server_name.key;
@@ -37,41 +42,44 @@ server {
   # include snippets/snakeoil.conf;
 <% end %>
 
-  client_max_body_size <%= fetch(:nginx_max_body_size) %>;
-
-  error_page 404 /404.html;
-  error_page 422 /422.html;
-  error_page 500 502 503 504 /500.html;
-
-  if ($host = www.$server_name) {
-    return 301 $scheme://$server_name$request_uri;
-  }
-
-<% fetch(:nginx_assets_dirs).each do |dir| %>
-  location /<%= dir %>/ {
+  location /assets/ {
     gzip_static on;
     expires 1M;
     add_header Cache-Control public;
-    access_log off;
+    access_log    off;
+    log_not_found off;
+  }
+
+<% fetch(:nginx_public_dirs).each do |folder| %>
+  location /<%= folder %>/ {
+    expires 1M;
+    add_header Cache-Control public;
+    access_log    off;
+    log_not_found off;
+  }
+<% end %>
+
+<% fetch(:nginx_public_files).each do |file| %>
+  location = /<%= file %> {
+    expires 1M;
+    add_header Cache-Control public;
+    access_log    off;
+    log_not_found off;
   }
 <% end %>
 }
 
-# Virtual Host configuration for example.com
-#
-# You can move that to a different file under sites-available/ and symlink that
-# to sites-enabled/ to enable it.
-#
-#server {
-#  listen 80;
-#  listen [::]:80;
-#
-#  server_name example.com;
-#
-#  root /var/www/example.com;
-#  index index.html;
-#
-#  location / {
-#    try_files $uri $uri/ =404;
-#  }
-#}
+<% if fetch(:nginx_redirects).any? %>
+server {
+  listen 80;
+  listen 443 ssl;
+
+  server_name <%= fetch(:server) %>;
+
+  <% fetch(:nginx_redirects).each do |src, dst| %>
+  location = /<%= src.sub(/^\//, '') %> {
+    return 301 $scheme://$server_name/<%= dst.sub(/^\//, '') %>;
+  }
+  <% end %>
+}
+<% end %>

@@ -1,13 +1,19 @@
 user <%= fetch(:deployer_name) %>;
-worker_processes <%= fetch(:nginx_workers) %>;
+worker_processes auto;
+worker_rlimit_nofile 4096;
 pid /run/nginx.pid;
 
 events {
-  worker_connections 768;
-  # multi_accept on;
+  worker_connections 1024;
+  multi_accept on;
+  use epoll;
 }
 
 http {
+  log_format custom_log '$remote_addr - $remote_user [$time_local] '
+    '"$request" $status $body_bytes_sent '
+    '"$http_referer" "$http_user_agent" '
+    '$upstream_response_time - $gzip_ratio';
 
   ##
   # Basic Settings
@@ -16,9 +22,16 @@ http {
   sendfile on;
   tcp_nopush on;
   tcp_nodelay on;
-  keepalive_timeout 65;
+  keepalive_timeout 30;
   types_hash_max_size 2048;
-  # server_tokens off;
+  server_tokens off;
+
+  client_max_body_size <%= fetch(:nginx_max_body_size) %>;
+
+  open_file_cache max=8192 inactive=10m;
+  open_file_cache_valid 20m;
+  open_file_cache_min_uses 1;
+  open_file_cache_errors on;
 
   # server_names_hash_bucket_size 64;
   # server_name_in_redirect off;
@@ -32,12 +45,16 @@ http {
 
   ssl_protocols TLSv1 TLSv1.1 TLSv1.2; # Dropping SSLv3, ref: POODLE
   ssl_prefer_server_ciphers on;
+  ssl_ciphers 'ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:AES:CAMELLIA:DES-CBC3-SHA:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!aECDH:!EDH-DSS-DES-CBC3-SHA:!EDH-RSA-DES-CBC3-SHA:!KRB5-DES-CBC3-SHA';
+
+  ssl_session_cache shared:SSL:50m;
+  ssl_session_timeout 10m;
 
   ##
   # Logging Settings
   ##
 
-  access_log /var/log/nginx/access.log;
+  access_log /var/log/nginx/access.log custom_log;
   error_log /var/log/nginx/error.log;
 
   ##
@@ -45,11 +62,12 @@ http {
   ##
 
   gzip on;
+  gzip_min_length 1024;
   gzip_disable "msie6";
 
   gzip_vary on;
   gzip_proxied any;
-  gzip_comp_level 6;
+  gzip_comp_level 5;
   gzip_buffers 16 8k;
   gzip_http_version 1.1;
   gzip_types
@@ -72,6 +90,7 @@ http {
   passenger_ruby /home/<%= fetch(:deployer_name) %>/.rbenv/shims/ruby;
   passenger_pool_idle_time 0;
   passenger_max_request_queue_size 1000;
+  passenger_show_version_in_header off;
 
   ##
   # Virtual Host Configs

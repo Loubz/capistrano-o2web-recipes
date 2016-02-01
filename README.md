@@ -49,19 +49,24 @@ Configurations can be customized in your deploy file with:
 ```ruby
 set :server, 'example.com'
 set :deployer_name, 'deployer'
-# default to %W[system]
-set :files_public_dirs, fetch(:files_public_dirs, []).push(*%W[
+# default to ['system']
+set :files_public_dirs, fetch(:files_public_dirs).push(*%W[
   spree
 ])
 # default to []
-set :files_private_dirs, fetch(:files_private_dirs, []).push(*%W[
-])
-set :nginx_workers, 1
-# default to %W[assets system]
-set :nginx_assets_dirs, fetch(:nginx_assets_dirs, []).push(*%W[
-  spree
+set :files_private_dirs, fetch(:files_private_dirs).push(*%W[
 ])
 set :nginx_max_body_size, '10m'
+# default to ['system', 'images']
+set :nginx_assets_dirs, fetch(:nginx_assets_dirs).push(*%W[
+  spree
+])
+# default to ['404.html', '422.html', '500.html', 'favicon.ico']
+set :nginx_assets_files, fetch(:nginx_assets_files).push(*%W[
+])
+# default to {}
+set :nginx_redirects, fetch(:nginx_redirects).merge({
+})
 ```
 
 ### TODO
