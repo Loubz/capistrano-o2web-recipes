@@ -58,11 +58,11 @@ set :files_private_dirs, fetch(:files_private_dirs).push(*%W[
 ])
 set :nginx_max_body_size, '10m'
 # default to ['system', 'images']
-set :nginx_assets_dirs, fetch(:nginx_assets_dirs).push(*%W[
+set :nginx_public_dirs, fetch(:nginx_public_dirs).push(*%W[
   spree
 ])
 # default to ['404.html', '422.html', '500.html', 'favicon.ico']
-set :nginx_assets_files, fetch(:nginx_assets_files).push(*%W[
+set :nginx_public_files, fetch(:nginx_public_files).push(*%W[
 ])
 # default to {}
 set :nginx_redirects, fetch(:nginx_redirects).merge({
