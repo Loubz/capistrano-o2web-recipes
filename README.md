@@ -24,7 +24,7 @@ Add this line to `Capfile`, after `require 'capistrano/rails/migrations'`
 
     require 'capistrano/o2web_recipes'
     
-To install Nginx config files, run:
+To install Nginx/Monit config files, run:
 
     $ rails g capistrano:o2web_recipes:install
     
@@ -40,6 +40,10 @@ cap [stage] files:private:local_to_server # Export private files
 cap [stage] db:server_to_local            # Sync local DB with server DB
 cap [stage] db:local_to_server            # Sync server DB with local DB
 cap [stage] nginx:local_to_server         # Export nginx configuration files
+cap [stage] monit:start
+cap [stage] monit:stop
+cap [stage] monit:restart
+cap [stage] monit:reload
 ```
 
 Also, `deploy:assets:precompile` task is done locally and a `cron.log` file is created/touched in `shared/log` after deploy.
@@ -64,13 +68,14 @@ set :nginx_public_dirs, fetch(:nginx_public_dirs).push(*%W[
 # default to ['404.html', '422.html', '500.html', 'favicon.ico']
 set :nginx_public_files, fetch(:nginx_public_files).push(*%W[
 ])
-# default to {}
+# default to {} with keys as original urls and values as rewritten urls
 set :nginx_redirects, fetch(:nginx_redirects).merge({
 })
 ```
 
 ### TODO
 
-1. Use stages (staging/production) to scope Nginx config file to allow multiple stages on the same server.
-1. Log rotate
-1. Monit
+1. Nginx Whitelisting/Blacklisting/Throttling
+1. Fail2Ban
+1. Use stages (staging/production) to scope Nginx config file to allow multiple stages on the same server (sites-available/sites-enabled).
+1. Maintenance page
