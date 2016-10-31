@@ -49,7 +49,10 @@ namespace :deploy do
     end
   end
 
-  after :deploy, :touch_cron_log do
+  after 'deploy', 'deploy:touch_cron_log'
+
+  desc 'Touch cron log'
+  task :touch_cron_log do
     on roles :app do
       within shared_path do
         execute :touch, 'log/cron.log'
