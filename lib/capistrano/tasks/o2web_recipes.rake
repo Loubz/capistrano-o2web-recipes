@@ -49,8 +49,6 @@ namespace :deploy do
     end
   end
 
-  after 'deploy', 'deploy:touch_cron_log'
-
   desc 'Touch cron log'
   task :touch_cron_log do
     on roles :app do
@@ -59,6 +57,9 @@ namespace :deploy do
       end
     end
   end
+  
+  # after 'deploy', 'deploy:touch_cron_log'
+
 end
 
 namespace :git do
